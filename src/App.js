@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 // import ArticleList from './ArticleList';
@@ -26,7 +26,7 @@ function App() {
         <Sidebar />
         <div className="main-content">
          
-          <SearchBar /> 
+          <ConditionalSearchBar /> 
           <Suspense fallback={<div>Loading...</div>}>
             <Routes>
               <Route path="/" element={<ArticleList />} />
@@ -41,6 +41,13 @@ function App() {
       </div>
     </Router>
   );
+}
+
+function ConditionalSearchBar() {
+  const location = useLocation();
+  const isLoginRoute = location.pathname === '/login';
+
+  return !isLoginRoute ? <SearchBar /> : null;
 }
 
 export default App;
