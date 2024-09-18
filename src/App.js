@@ -1,24 +1,45 @@
-import logo from './logo.svg';
+import React, { lazy, Suspense } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Sidebar from './Sidebar';
+import TopBar from './TopBar';
+// import ArticleList from './ArticleList';
+// import ArticleDetail from './ArticleDetail';
+import SearchBar from './SearchBar';
+// import SearchResults from './SearchResults';
+// import AllArticles from './AllArticles'; 
+// import LoginScreen from './LoginScreen'; 
 import './App.css';
+// import AllHistory from './AllHistory';
+
+
+const ArticleList = lazy(() => import('./ArticleList'));
+const ArticleDetail = lazy(() => import('./ArticleDetail'));
+const SearchResults = lazy(() => import('./SearchResults'));
+const AllArticles = lazy(() => import('./AllArticles'));
+const LoginScreen = lazy(() => import('./LoginScreen'));
+const AllHistory = lazy(() => import('./AllHistory'));
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="app-container">
+        <Sidebar />
+        <div className="main-content">
+         
+          <SearchBar /> 
+          <Suspense fallback={<div>Loading...</div>}>
+            <Routes>
+              <Route path="/" element={<ArticleList />} />
+              <Route path="/articles/:id" element={<ArticleDetail />} />
+              <Route path="/search" element={<SearchResults />} />
+              <Route path="/allarticles" element={<AllArticles />} /> 
+              <Route path="/login" element={<LoginScreen />} /> 
+              <Route path="/history" element={<AllHistory />} /> 
+            </Routes>
+          </Suspense>
+        </div>
+      </div>
+    </Router>
   );
 }
 
