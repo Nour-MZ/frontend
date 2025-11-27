@@ -3,11 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 const collectImages = (hotel) => {
   const imgs = []
+  const seen = new Set()
   const pushImg = (img) => {
     if (!img) return
     const raw = img.path || img.url || img.image
     const src = raw ? `https://photos.hotelbeds.com/giata/bigger/${raw}` : ''
-    if (src) imgs.push(src)
+    if (src && !seen.has(src)) {
+      seen.add(src)
+      imgs.push(src)
+    }
   }
   if (Array.isArray(hotel.images)) {
     hotel.images.forEach(pushImg)
@@ -32,6 +36,26 @@ const collectImages = (hotel) => {
   return imgs
 }
 
+const parseDatesFromRateKey = (rateKey) => {
+  if (!rateKey || typeof rateKey !== 'string') return { checkIn: null, checkOut: null, nights: null }
+  const parts = rateKey.split('|')
+  if (parts.length < 2) return { checkIn: null, checkOut: null, nights: null }
+  const normalize = (v) => {
+    const m = /^(\d{4})(\d{2})(\d{2})$/.exec(v)
+    return m ? `${m[1]}-${m[2]}-${m[3]}` : v
+  }
+  const checkIn = normalize(parts[0])
+  const checkOut = normalize(parts[1])
+  let nights = null
+  try {
+    const ci = new Date(checkIn)
+    const co = new Date(checkOut)
+    const diff = (co - ci) / (1000 * 60 * 60 * 24)
+    if (!Number.isNaN(diff)) nights = Math.max(1, Math.round(diff))
+  } catch (_) {}
+  return { checkIn, checkOut, nights }
+}
+
 const HotelResults = ({ hotels = [] }) => {
   const [selected, setSelected] = useState(null)
 
@@ -41,6 +65,17 @@ const HotelResults = ({ hotels = [] }) => {
         {hotels.map((h, idx) => {
           const imgs = collectImages(h)
           const hero = imgs[0]
+          // derive basic stay info from first rate's rateKey
+          let checkIn = null
+          let checkOut = null
+          let nights = null
+          const firstRate = h.rooms?.[0]?.rates?.[0]
+          if (firstRate?.rateKey || firstRate?.rate_key) {
+            const parsed = parseDatesFromRateKey(firstRate.rateKey || firstRate.rate_key)
+            checkIn = parsed.checkIn
+            checkOut = parsed.checkOut
+            nights = parsed.nights
+          }
           return (
             <motion.button
               key={`${h.code || idx}-${idx}`}
@@ -57,6 +92,9 @@ const HotelResults = ({ hotels = [] }) => {
                   <p className="text-sm text-luxury-cream/70">Hotel #{idx + 1}</p>
                   <p className="text-lg font-semibold text-luxury-cream">{h.name || 'Hotel'}</p>
                   <p className="text-xs text-luxury-cream/60">{h.category}</p>
+                  {nights && (
+                    <p className="text-[11px] text-luxury-cream/60">{nights} night{nights === 1 ? '' : 's'}</p>
+                  )}
                 </div>
                 <div className="text-right">
                   <p className="text-xl font-semibold text-luxury-gold">
@@ -86,6 +124,25 @@ const HotelResults = ({ hotels = [] }) => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
             >
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-xs text-luxury-cream/60 space-y-1">
+                  {selected.rooms?.[0]?.rates?.[0] && (() => {
+                    const r = selected.rooms[0].rates[0]
+                    const parsed = parseDatesFromRateKey(r.rateKey || r.rate_key)
+                    return (
+                      <>
+                        {parsed.checkIn && <p>Check-in: {parsed.checkIn}</p>}
+                        {parsed.checkOut && <p>Check-out: {parsed.checkOut}</p>}
+                        {parsed.nights && <p>Stay length: {parsed.nights} night{parsed.nights === 1 ? '' : 's'}</p>}
+                      </>
+                    )
+                  })()}
+                </div>
+                <div className="text-right text-xs text-luxury-cream/60">
+                  <p>Currency: {selected.currency || 'n/a'}</p>
+                  {selected.category_code && <p>Category code: {selected.category_code}</p>}
+                </div>
+              </div>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-lg font-semibold text-luxury-cream">{selected.name || 'Hotel'}</p>

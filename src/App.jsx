@@ -6,6 +6,7 @@ import ChatInterface from './components/ChatInterface'
 import Sidebar from './components/Sidebar'
 import FlightResults from './components/FlightResults'
 import PassengerTemplate from './components/PassengerTemplate'
+import BookingTemplate from './components/BookingTemplate'
 import ProfilePanel from './components/ProfilePanel'
 import ProfilePage from './components/ProfilePage'
 import AuthPanel from './components/AuthPanel'
@@ -63,10 +64,16 @@ function App() {
           message: JSON.stringify(enrichedPayload),
         })
       })
-      const data = await response.json()
+      let data
+      try {
+        data = await response.json()
+      } catch (e) {
+        data = { reply: await response.text() }
+      }
       const replyText = data.reply ?? "I'm here, but I couldn't understand the response."
 
       let parsedTemplate = null
+      let parsedBookingTemplate = null
       try {
         const maybeJson = JSON.parse(replyText)
         if (maybeJson && typeof maybeJson === 'object') {
@@ -241,29 +248,37 @@ function App() {
         throw new Error(`Request failed with status ${response.status}`)
       }
 
-      const data = await response.json()
+      let data
+      try {
+        data = await response.json()
+      } catch (e) {
+        data = { reply: await response.text() }
+      }
       const replyText = data.reply ?? "I'm here, but I couldn't understand the response."
 
       let parsedFlights = null
       let parsedTemplate = null
       let parsedPlan = null
       let parsedHotels = null
+      let parsedBookingTemplate = null
       if (typeof replyText === 'string') {
         try {
           const maybeJson = JSON.parse(replyText)
           if (Array.isArray(maybeJson)) {
             parsedFlights = maybeJson.slice(0, 10)
           } else if (maybeJson && typeof maybeJson === 'object') {
-            if (maybeJson.passenger_template) {
-              parsedTemplate = maybeJson.passenger_template
-            } else if (maybeJson.passengers && maybeJson.required_fields) {
-              // Support backend responses that send the template object directly
-              parsedTemplate = maybeJson
-            } else if (maybeJson.hotels && Array.isArray(maybeJson.hotels)) {
-              parsedHotels = maybeJson.hotels.slice(0, 10)
-            } else if (maybeJson.flight && maybeJson.hotel) {
-              parsedPlan = maybeJson
-            }
+          if (maybeJson.passenger_template && (maybeJson.hotel_holder || maybeJson.hotel_rooms)) {
+            parsedBookingTemplate = maybeJson
+          } else if (maybeJson.passenger_template) {
+            parsedTemplate = maybeJson.passenger_template
+          } else if (maybeJson.passengers && maybeJson.required_fields) {
+            // Support backend responses that send the template object directly
+            parsedTemplate = maybeJson
+          } else if (maybeJson.hotels && Array.isArray(maybeJson.hotels)) {
+            parsedHotels = maybeJson.hotels.slice(0, 10)
+          } else if (maybeJson.flight && maybeJson.hotel) {
+            parsedPlan = maybeJson
+          }
           }
         } catch (e) {
           // not JSON; keep as-is
@@ -278,13 +293,16 @@ function App() {
           ? 'Here is your trip plan.'
           : parsedFlights
             ? 'Here are some flight options.'
-            : parsedTemplate
-              ? 'Please fill the passenger details template.'
-              : parsedHotels
-                ? 'Here are some hotel options.'
-                : replyText,
+            : parsedBookingTemplate
+              ? 'Please fill the booking template.'
+              : parsedTemplate
+                ? 'Please fill the passenger details template.'
+                : parsedHotels
+                  ? 'Here are some hotel options.'
+                  : replyText,
         flights: parsedFlights,
         templateOffer: parsedTemplate,
+        bookingTemplate: parsedBookingTemplate,
         hotels: parsedHotels,
         tripPlan: parsedPlan,
         sender: 'ai',
@@ -464,12 +482,32 @@ function App() {
                         {message.templateOffer && (
                           <div className="mt-4">
                             <PassengerTemplate
-                               offer={message.templateOffer}
-                              onSubmit={(passengerData) => {
-                                // Serialize passenger data back through chat so backend can pick it up
+                              offer={message.templateOffer}
+                              onSubmit={(payloadFromForm) => {
                                 const payload = {
                                   offer_id: message.templateOffer.id,
-                                  passengers: passengerData,
+                                  passengers: payloadFromForm.passengers,
+                                  payment_type: payloadFromForm.payment_type,
+                                  payment_source: payloadFromForm.payment_source,
+                                }
+                                sendPayload(payload, currentChatId)
+                              }}
+                            />
+                          </div>
+                        )}
+                        {message.bookingTemplate && (
+                          <div className="mt-4">
+                            <BookingTemplate
+                              template={message.bookingTemplate}
+                              onSubmit={(data) => {
+                                const payload = {
+                                  tool: "book_plan_trip",
+                                  passengers: data.passengers,
+                                  holder: data.holder,
+                                  rooms: data.rooms,
+                                  client_reference: data.client_reference,
+                                  flight_offer_id: data.flight_offer_id,
+                                  hotel_rate_key: data.hotel_rate_key,
                                 }
                                 sendPayload(payload, currentChatId)
                               }}

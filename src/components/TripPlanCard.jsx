@@ -20,11 +20,15 @@ const formatDate = (iso) => {
 
 const collectImages = (hotel) => {
   const imgs = []
+  const seen = new Set()
   const pushImg = (img) => {
     if (!img) return
     const raw = img.path || img.url || img.image
     const src = raw ? `https://photos.hotelbeds.com/giata/bigger/${raw}` : ''
-    if (src) imgs.push(src)
+    if (src && !seen.has(src)) {
+      seen.add(src)
+      imgs.push(src)
+    }
   }
   if (Array.isArray(hotel?.images)) {
     hotel.images.forEach(pushImg)
@@ -130,7 +134,7 @@ const TripPlanCard = ({ plan }) => {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs text-luxury-cream/60">Trip plan</p>
-          <p className="text-lg font-semibold text-luxury-cream">{origin} -> {destination}</p>
+          <p className="text-lg font-semibold text-luxury-cream">{origin} &rarr; {destination}</p>
           <p className="text-xs text-luxury-cream/60">
             {formatDate(checkIn)}{checkOut ? ` to ${formatDate(checkOut)}` : ''}
           </p>
@@ -161,7 +165,7 @@ const TripPlanCard = ({ plan }) => {
             <div>
               <p className="text-xs text-luxury-cream/60">Flight</p>
               <p className="text-base font-semibold text-luxury-cream">
-                {flight.slices?.[0]?.origin?.iata_code || origin} -> {flight.slices?.[0]?.destination?.iata_code || destination}
+                {flight.slices?.[0]?.origin?.iata_code || origin} &rarr; {flight.slices?.[0]?.destination?.iata_code || destination}
               </p>
               <p className="text-xs text-luxury-cream/60">{flight.slices?.[0]?.duration || 'Duration n/a'}</p>
             </div>
@@ -241,7 +245,7 @@ const TripPlanCard = ({ plan }) => {
                       <div>
                         <p className="text-sm text-luxury-cream/60">Leg {idx + 1}</p>
                         <p className="text-lg font-semibold text-luxury-cream">
-                          {sl.origin?.iata_code || sl.origin?.name} -> {sl.destination?.iata_code || sl.destination?.name}
+                          {sl.origin?.iata_code || sl.origin?.name} &rarr; {sl.destination?.iata_code || sl.destination?.name}
                         </p>
                         <p className="text-xs text-luxury-cream/60">{sl.duration || 'Duration n/a'}</p>
                       </div>
@@ -259,7 +263,7 @@ const TripPlanCard = ({ plan }) => {
                                 {seg.marketing_carrier?.name || 'Carrier'} - {seg.marketing_carrier_flight_number}
                               </p>
                               <p className="text-base text-luxury-cream">
-                                {seg.origin?.iata_code || seg.origin} -> {seg.destination?.iata_code || seg.destination}
+                                {seg.origin?.iata_code || seg.origin} &rarr; {seg.destination?.iata_code || seg.destination}
                               </p>
                               <p className="text-xs text-luxury-cream/60">
                                 {formatTime(seg.departing_at)} - {formatTime(seg.arriving_at)} - {seg.duration || 'Duration n/a'}

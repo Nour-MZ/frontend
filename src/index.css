@@ -34,6 +34,11 @@
     @apply rounded-3xl px-6 py-4 max-w-[95%] shadow-lg;
   }
 
+  /* Preserve newlines in chat text */
+  .chat-bubble p {
+    white-space: pre-line;
+  }
+
   .scrollbar-luxury::-webkit-scrollbar {
     @apply w-2;
   }

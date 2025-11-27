@@ -9,7 +9,7 @@ const Welcome = ({ onQuestionClick }) => {
     },
     {
       icon: '💰',
-      text: 'Plan a full travel to Russia under $1200',
+      text: 'Plan a full travel to Suadi from Beirut starting january 1 and ending january 12',
       category: 'Budget-Conscious'
     },
     {

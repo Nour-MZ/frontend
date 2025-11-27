@@ -25,6 +25,12 @@ const PassengerTemplate = ({ offer, onSubmit }) => {
   }, [passengersFromOffer])
 
   const [passengers, setPassengers] = useState(initialPassengers)
+  const [paymentType, setPaymentType] = useState('card')
+  const [cardNumber, setCardNumber] = useState('')
+  const [cardName, setCardName] = useState('')
+  const [cardExpMonth, setCardExpMonth] = useState('')
+  const [cardExpYear, setCardExpYear] = useState('')
+  const [cardCvc, setCardCvc] = useState('')
 
   const handleChange = (idx, field, value) => {
     let nextVal = value
@@ -41,7 +47,20 @@ const PassengerTemplate = ({ offer, onSubmit }) => {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (onSubmit) {
-      onSubmit(passengers)
+      const payload = {
+        passengers,
+        payment_type: paymentType || 'card',
+      }
+      if (paymentType === 'card' && cardNumber && cardExpMonth && cardExpYear && cardCvc) {
+        payload.payment_source = {
+          card_number: cardNumber.replace(/\s+/g, ''),
+          exp_month: cardExpMonth,
+          exp_year: cardExpYear,
+          cvc: cardCvc,
+          holder_name: cardName,
+        }
+      }
+      onSubmit(payload)
     }
   }
 
@@ -123,6 +142,94 @@ const PassengerTemplate = ({ offer, onSubmit }) => {
         ))}
 
         <div className="flex gap-3">
+          <div className="flex-1 space-y-2 text-xs">
+            <p className="text-luxury-cream/70 font-semibold">Payment</p>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="payment_type"
+                  value="card"
+                  checked={paymentType === 'card'}
+                  onChange={() => setPaymentType('card')}
+                />
+                <span className="text-luxury-cream/70">Card</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="payment_type"
+                  value="balance"
+                  checked={paymentType === 'balance'}
+                  onChange={() => setPaymentType('balance')}
+                />
+                <span className="text-luxury-cream/70">Balance</span>
+              </label>
+            </div>
+            {paymentType === 'card' && (
+              <div className="grid md:grid-cols-2 gap-3">
+                <label className="flex flex-col gap-1">
+                  <span className="text-luxury-cream/60">Card number</span>
+                  <input
+                    className="rounded-lg bg-luxury-navy/40 border border-luxury-gold/20 px-3 py-2 text-luxury-cream text-sm focus:outline-none focus:border-luxury-gold/60"
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(e.target.value)}
+                    placeholder="4242 4242 4242 4242"
+                    inputMode="numeric"
+                    required
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-luxury-cream/60">Name on card</span>
+                  <input
+                    className="rounded-lg bg-luxury-navy/40 border border-luxury-gold/20 px-3 py-2 text-luxury-cream text-sm focus:outline-none focus:border-luxury-gold/60"
+                    value={cardName}
+                    onChange={(e) => setCardName(e.target.value)}
+                    placeholder="John Doe"
+                    required
+                  />
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="flex flex-col gap-1">
+                    <span className="text-luxury-cream/60">Exp. month (MM)</span>
+                    <input
+                      className="rounded-lg bg-luxury-navy/40 border border-luxury-gold/20 px-3 py-2 text-luxury-cream text-sm focus:outline-none focus:border-luxury-gold/60"
+                      value={cardExpMonth}
+                      onChange={(e) => setCardExpMonth(e.target.value)}
+                      placeholder="12"
+                      inputMode="numeric"
+                      maxLength={2}
+                      required
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-luxury-cream/60">Exp. year (YY)</span>
+                    <input
+                      className="rounded-lg bg-luxury-navy/40 border border-luxury-gold/20 px-3 py-2 text-luxury-cream text-sm focus:outline-none focus:border-luxury-gold/60"
+                      value={cardExpYear}
+                      onChange={(e) => setCardExpYear(e.target.value)}
+                      placeholder="30"
+                      inputMode="numeric"
+                      maxLength={2}
+                      required
+                    />
+                  </label>
+                </div>
+                <label className="flex flex-col gap-1">
+                  <span className="text-luxury-cream/60">CVC</span>
+                  <input
+                    className="rounded-lg bg-luxury-navy/40 border border-luxury-gold/20 px-3 py-2 text-luxury-cream text-sm focus:outline-none focus:border-luxury-gold/60"
+                    value={cardCvc}
+                    onChange={(e) => setCardCvc(e.target.value)}
+                    placeholder="123"
+                    inputMode="numeric"
+                    maxLength={4}
+                    required
+                  />
+                </label>
+              </div>
+            )}
+          </div>
           <button
             type="submit"
             className="px-4 py-2 rounded-xl bg-luxury-gold text-luxury-navy font-semibold hover:brightness-105 transition"
