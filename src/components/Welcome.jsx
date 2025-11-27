@@ -4,17 +4,17 @@ const Welcome = ({ onQuestionClick }) => {
   const questions = [
     {
       icon: '🌴',
-      text: 'Suggest a tropical paradise for my honeymoon',
+      text: 'Search for flights from beirut to dubai next weekend',
       category: 'Luxury'
     },
     {
       icon: '💰',
-      text: 'Plan a 2-week European adventure under $3000',
+      text: 'Plan a full travel to Russia under $1200',
       category: 'Budget-Conscious'
     },
     {
       icon: '🗺️',
-      text: 'Show me hidden gems in Southeast Asia',
+      text: 'What are some available hotels in lebanon next month',
       category: 'Discovery'
     },
     {

@@ -9,6 +9,8 @@ import PassengerTemplate from './components/PassengerTemplate'
 import ProfilePanel from './components/ProfilePanel'
 import ProfilePage from './components/ProfilePage'
 import AuthPanel from './components/AuthPanel'
+import HotelResults from './components/HotelResults'
+import TripPlanCard from './components/TripPlanCard'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -244,6 +246,8 @@ function App() {
 
       let parsedFlights = null
       let parsedTemplate = null
+      let parsedPlan = null
+      let parsedHotels = null
       if (typeof replyText === 'string') {
         try {
           const maybeJson = JSON.parse(replyText)
@@ -255,6 +259,10 @@ function App() {
             } else if (maybeJson.passengers && maybeJson.required_fields) {
               // Support backend responses that send the template object directly
               parsedTemplate = maybeJson
+            } else if (maybeJson.hotels && Array.isArray(maybeJson.hotels)) {
+              parsedHotels = maybeJson.hotels.slice(0, 10)
+            } else if (maybeJson.flight && maybeJson.hotel) {
+              parsedPlan = maybeJson
             }
           }
         } catch (e) {
@@ -266,9 +274,19 @@ function App() {
 
       const aiMessage = {
         id: Date.now() + 1,
-        text: parsedFlights ? 'Here are some flight options.' : parsedTemplate ? 'Please fill the passenger details template.' : replyText,
+        text: parsedPlan
+          ? 'Here is your trip plan.'
+          : parsedFlights
+            ? 'Here are some flight options.'
+            : parsedTemplate
+              ? 'Please fill the passenger details template.'
+              : parsedHotels
+                ? 'Here are some hotel options.'
+                : replyText,
         flights: parsedFlights,
         templateOffer: parsedTemplate,
+        hotels: parsedHotels,
+        tripPlan: parsedPlan,
         sender: 'ai',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
@@ -425,6 +443,22 @@ function App() {
                             <p className="text-sm text-luxury-cream/70">
                               Please enter the number of the flight you like to book.
                             </p>
+                          </div>
+                        )}
+                        {message.tripPlan && (
+                          <div className="mt-4">
+                            <TripPlanCard plan={message.tripPlan} />
+                          </div>
+                        )}
+                        {message.hotels && (
+                          <div className="mt-4 space-y-2">
+                            <HotelResults hotels={message.hotels} />
+                            <details className="text-xs text-luxury-cream/60">
+                              <summary className="cursor-pointer">Raw hotel JSON</summary>
+                              <pre className="mt-2 whitespace-pre-wrap break-words bg-black/30 p-2 rounded-lg text-[11px] text-luxury-cream/70">
+                                {JSON.stringify(message.hotels, null, 2)}
+                              </pre>
+                            </details>
                           </div>
                         )}
                         {message.templateOffer && (
