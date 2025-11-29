@@ -24,8 +24,8 @@ const Welcome = ({ onQuestionClick }) => {
     },
     {
       icon: '🍽️',
-      text: 'Find top rated restaurants around movenpick hotel lebanon for fine dining experience',
-      category: 'Culture'
+      text: 'How much does it take on average to prepare for a flight',
+      category: 'Question Answering'
     }
   ]
 
