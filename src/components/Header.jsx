@@ -60,7 +60,7 @@ const Header = ({ onReset, showReset, onProfile, authedUser }) => {
               transition={{ delay: 0.3 }}
             >
               <p className="text-luxury-cream/80 font-serif italic text-lg">
-                Where Intelligence Meets <span className="gradient-text">Wanderlust</span>
+                Faster Reserves  <span className="gradient-text">Cheaper Bookings</span>
               </p>
             </motion.div>
 

@@ -14,17 +14,17 @@ const Welcome = ({ onQuestionClick }) => {
     },
     {
       icon: '🗺️',
-      text: 'What are some available hotels in lebanon next month',
+      text: 'What are some available hotels in NYC next month',
       category: 'Discovery'
     },
     {
       icon: '🏔️',
-      text: 'Find the best hiking destinations for spring',
+      text: 'Suggest Some places to visit in switzerland for a hiking trip',
       category: 'Adventure'
     },
     {
-      icon: '🍷',
-      text: 'Create a culinary tour through Italy',
+      icon: '🍽️',
+      text: 'Find top rated restaurants around movenpick hotel lebanon for fine dining experience',
       category: 'Culture'
     }
   ]
